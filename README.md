@@ -4,53 +4,45 @@ A real-time chat application built with WebSockets and Socket.IO, enabling insta
 
 ## Project Status
 
-### **Completed: Task 56A - Mini Real-Time Chat App**
+### **Completed: Full Chat App with Rooms + User List**
 
-- **Real-time messaging** using Socket.io
-- **Broadcast functionality** - messages appear on all connected clients
-- **Modern UI** with gradient design and smooth animations
-- **Connection status indicator** with visual feedback
-- **Message timestamps** and auto-scroll functionality
+- **Room-based messaging** with 5 different chat rooms (General, Sports, Tech, Music, Gaming)
+- **User management** with usernames and room tracking
+- **Real-time user lists** showing active users in each room
+- **Join/Leave notifications** when users enter or exit rooms
+- **Room-specific messaging** - messages only appear in the selected room
+- **Enhanced UI** with sidebar layout and modern styling
 - **Responsive design** that works on all devices
-
-### **Currently Working Features**
-
-- ✅ Real-time message broadcasting
-- ✅ Multiple user connections
-- ✅ Beautiful chat interface
-- ✅ Connection status monitoring
-- ✅ Message styling (sent vs received)
-- ✅ Auto-scroll to latest messages
-- ✅ Smooth animations and transitions
 
 ## Description
 
-Simple Chat App is a real-time messaging application that allows users to communicate instantly. Built with modern web technologies, it provides a seamless chat experience with features like message status indicators, user authentication, and multi-room support.
+Simple Chat App is a real-time messaging application that allows users to communicate instantly in different themed rooms. Built with modern web technologies, it provides a seamless chat experience with room-based messaging, user management, and real-time user tracking.
 
 ## Features
 
 ### Real-time Communication
 
 - ✅ Instant message delivery using WebSockets
+- ✅ Room-based messaging with Socket.io rooms
 - ✅ Real-time synchronization across all connected devices
 - ✅ Message status indicators (sent, delivered, read)
 - 🔄 Typing indicators (planned)
 
 ### User Management
 
-- 🔄 JWT authentication (register/login/logout) - planned
-- 🔄 User profiles with avatars - planned
-- 🔄 Online/offline status indicators - planned
+- ✅ Username-based authentication
+- ✅ Room joining and leaving
+- ✅ Real-time user lists per room
+- ✅ Join/Leave notifications
 
 ### Technical Features
 
 - ✅ Socket.IO for bidirectional communication
+- ✅ Room management with socket.join() and socket.leave()
 - ✅ Automatic reconnection on network issues
-- 🔄 Message queuing for offline users - planned
-- 🔄 File/image upload support - planned
-- 🔄 MongoDB for persistent storage - planned
+- ✅ User tracking per room
 
-## Quick Start (Current Working Version)
+## Quick Start
 
 ### Prerequisites
 
@@ -82,32 +74,53 @@ Simple Chat App is a real-time messaging application that allows users to commun
 
 4. **Open in browser:**
    - Navigate to `http://localhost:3000`
-   - Open multiple browser tabs to test real-time chat
+   - Open multiple browser tabs to test room-based chat
 
-### Testing Real-Time Chat
+### Testing Room-Based Chat
 
-1. Start the server: `node server.js`
-2. Open `http://localhost:3000` in your browser
-3. Open another browser tab with the same URL
-4. Start typing messages in either tab
-5. Watch messages appear in real-time across both tabs!
+1. **Start the server:** `node server.js`
+2. **Open multiple browser tabs** with `http://localhost:3000`
+3. **Join different rooms:**
+   - Enter a username (e.g., "Alice", "Bob", "Charlie")
+   - Select a room (General, Sports, Tech, Music, Gaming)
+   - Click "Join Room"
+4. **Test room functionality:**
+   - Send messages in different rooms
+   - See messages only appear in the same room
+   - Watch user lists update in real-time
+   - Test join/leave notifications
+   - Try switching between rooms
 
-## 📁 Project Structure
+### How to Use Rooms
+
+1. **Enter Username:** Choose a unique username
+2. **Select Room:** Pick from available rooms:
+   - **General** - General discussions
+   - **Sports** - Sports and athletics
+   - **Tech** - Technology and programming
+   - **Music** - Music and entertainment
+   - **Gaming** - Video games and gaming
+3. **Join Room:** Click "Join Room" to enter the selected room
+4. **Start Chatting:** Send messages that only appear in your current room
+5. **View Users:** See all active users in the left sidebar
+6. **Leave Room:** Click "Leave Room" to exit and return to room selection
+
+## Project Structure
 
 ```
 simple-chat-app/
-├── server.js              # Express + Socket.io server ✅
+├── server.js              # Express + Socket.io server with room management
 ├── public/
-│   ├── index.html         # Chat interface ✅
-│   └── client.js          # Frontend Socket.io logic ✅
-├── package.json           # Dependencies and scripts ✅
-├── MINI_CHAT_README.md    # Task 56A documentation ✅
-├── config/                # Configuration files (planned)
-├── controllers/           # Business logic handlers (planned)
-├── middleware/            # Custom middleware (planned)
-├── models/                # Database models (planned)
-├── routes/                # API route definitions (planned)
-└── tests/                 # Test files (planned)
+│   ├── index.html         # Room-based chat interface
+│   ├── client.js          # Frontend Socket.io logic with room handling
+│   └── style.css          # Enhanced styling for room interface
+├── package.json           # Dependencies and scripts
+├── config/                # Configuration files
+├── controllers/           # Business logic handlers
+├── middleware/            # Custom middleware
+├── models/                # Database models
+├── routes/                # API route definitions
+└── tests/                 # Test files
 ```
 
 ## Technologies Used
@@ -115,18 +128,40 @@ simple-chat-app/
 ### **Currently Implemented**
 
 - **Backend**: Node.js with Express.js
-- **Real-time Communication**: Socket.IO
+- **Real-time Communication**: Socket.IO with room management
 - **Frontend**: HTML5, CSS3, Vanilla JavaScript
-- **Styling**: Modern CSS with gradients and animations
+- **Styling**: Modern CSS with gradients, animations, and responsive design
+- **Room Management**: Socket.io rooms with user tracking
 
-### **Planned for Future**
+## Room Features
 
-- **Database**: MongoDB with Mongoose
-- **Authentication**: JWT with bcrypt
-- **File Upload**: Multer
-- **Testing**: Jest, Socket.IO Client for testing
+### **Available Rooms**
 
-## 📝 License
+- **General** - General discussions and casual chat
+- **Sports** - Sports news, games, and athletics
+- **Tech** - Technology, programming, and software
+- **Music** - Music, artists, and entertainment
+- **Gaming** - Video games, gaming news, and discussions
+
+### **Room Functionality**
+
+- **Isolated Messaging**: Messages only appear in the selected room
+- **User Tracking**: Real-time list of active users in each room
+- **Join Notifications**: System messages when users join
+- **Leave Notifications**: System messages when users leave
+- **Room Switching**: Users can leave and join different rooms
+- **Connection Status**: Visual indicator of connection state
+
+## Contributing
+
+This project is currently in active development. Feel free to contribute by:
+
+1. Testing the room-based features
+2. Reporting bugs or issues
+3. Suggesting new room themes or features
+4. Contributing code improvements
+
+## License
 
 This project is licensed under the ISC License.
 
@@ -135,6 +170,3 @@ This project is licensed under the ISC License.
 **Azeez Damilare Gbenga**
 
 - GitHub: [@dazeez1](https://github.com/dazeez1)
-- Project: Simple Chat App
-
----
