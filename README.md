@@ -76,6 +76,69 @@ Open your browser and navigate to: `http://localhost:3000`
 4. Watch user lists update in real-time
 5. Test join/leave notifications
 
+## 🚀 Deployment
+
+### Vercel Deployment (Recommended)
+
+This app is optimized for deployment on Vercel with real-time WebSocket support.
+
+#### Option 1: Vercel CLI
+
+1. **Install Vercel CLI:**
+   ```bash
+   npm i -g vercel
+   ```
+
+2. **Deploy to Vercel:**
+   ```bash
+   vercel
+   ```
+
+3. **Follow the prompts** to connect your GitHub repository
+
+#### Option 2: GitHub Integration
+
+1. **Push to GitHub** (if not already done):
+   ```bash
+   git add .
+   git commit -m "Ready for deployment"
+   git push origin main
+   ```
+
+2. **Go to [vercel.com](https://vercel.com)**
+3. **Import your GitHub repository**
+4. **Vercel will automatically detect and deploy your app**
+
+#### Environment Variables
+
+The app automatically handles:
+- `NODE_ENV=production` (set by Vercel)
+- `PORT` (set by Vercel)
+- CORS configuration for production domains
+
+#### Deployment Features
+
+- ✅ **Real-time WebSocket support** on Vercel
+- ✅ **Automatic HTTPS** and CDN
+- ✅ **Global edge deployment**
+- ✅ **Auto-scaling** based on traffic
+- ✅ **Zero-downtime deployments**
+
+### Other Deployment Options
+
+#### Heroku
+```bash
+heroku create your-chat-app
+git push heroku main
+```
+
+#### Railway
+```bash
+railway login
+railway init
+railway up
+```
+
 ## 🧪 Testing with Postman
 
 ### Import Postman Collection

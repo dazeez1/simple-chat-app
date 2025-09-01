@@ -6,7 +6,25 @@ const path = require("path");
 // Initialize Express app
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server);
+
+// Configure Socket.io with CORS for production
+const io = socketIo(server, {
+  cors: {
+    origin: process.env.NODE_ENV === "production" 
+      ? ["https://simple-chat-app-*.vercel.app", "https://*.vercel.app"]
+      : "http://localhost:3000",
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
+
+// Security headers
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  next();
+});
 
 // Serve static files from public directory
 app.use(express.static(path.join(__dirname, "public")));
@@ -14,6 +32,16 @@ app.use(express.static(path.join(__dirname, "public")));
 // Serve the main chat page
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+// Health check endpoint for Vercel
+app.get("/api/health", (req, res) => {
+  res.json({ 
+    status: "ok", 
+    timestamp: new Date().toISOString(),
+    rooms: availableRooms,
+    activeUsers: activeUsers.size
+  });
 });
 
 // Store active users and their room information

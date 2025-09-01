@@ -2,18 +2,29 @@
   "name": "simple-chat-app",
   "version": "1.0.0",
   "description": "A real-time chat application built with WebSockets and Socket.IO, enabling instant messaging with modern features and a clean, responsive interface.",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
     "test": "node test-app.js",
     "start": "node server.js",
-    "dev": "node server.js"
+    "dev": "node server.js",
+    "build": "echo 'No build step required'",
+    "vercel-build": "echo 'Vercel build completed'"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/dazeez1/simple-chat-app.git"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "chat",
+    "real-time",
+    "socket.io",
+    "node.js",
+    "express",
+    "websockets",
+    "rooms",
+    "messaging"
+  ],
+  "author": "Azeez Damilare Gbenga",
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/dazeez1/simple-chat-app/issues"
@@ -21,6 +32,9 @@
   "homepage": "https://github.com/dazeez1/simple-chat-app#readme",
   "directories": {
     "test": "tests"
+  },
+  "engines": {
+    "node": ">=16.0.0"
   },
   "dependencies": {
     "express": "^5.1.0",

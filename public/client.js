@@ -1,5 +1,5 @@
 // Initialize Socket.io connection
-const socket = io("http://localhost:3000");
+const socket = io();
 
 // DOM elements
 const joinForm = document.getElementById("joinForm");
