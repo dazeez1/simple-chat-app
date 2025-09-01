@@ -1,0 +1,477 @@
+{
+	"info": {
+		"_postman_id": "simple-chat-app-collection",
+		"name": "Simple Chat App - WebSocket Tests",
+		"description": "Postman collection for testing the Simple Chat App WebSocket functionality. This collection includes tests for room management, user connections, and real-time messaging.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "WebSocket Connection Tests",
+			"item": [
+				{
+					"name": "Connect to WebSocket Server",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "ws://localhost:3000",
+							"protocol": "ws",
+							"host": [
+								"localhost"
+							],
+							"port": "3000"
+						},
+						"description": "Test WebSocket connection to the chat server"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Available Rooms",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// This test verifies that the server sends available rooms on connection",
+									"pm.test(\"Connection established\", function () {",
+									"    pm.expect(pm.ws.connected).to.be.true;",
+									"});",
+									"",
+									"pm.test(\"Available rooms received\", function () {",
+									"    // Listen for availableRooms event",
+									"    pm.ws.on('availableRooms', function(data) {",
+									"        pm.expect(data).to.be.an('array');",
+									"        pm.expect(data).to.include('General');",
+									"        pm.expect(data).to.include('Sports');",
+									"        pm.expect(data).to.include('Tech');",
+									"        pm.expect(data).to.include('Music');",
+									"        pm.expect(data).to.include('Gaming');",
+									"    });",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "ws://localhost:3000",
+							"protocol": "ws",
+							"host": [
+								"localhost"
+							],
+							"port": "3000"
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Tests for establishing WebSocket connections and receiving initial data"
+		},
+		{
+			"name": "Room Management",
+			"item": [
+				{
+					"name": "Join Room - Valid Room",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test joining a valid room",
+									"pm.test(\"Room joined successfully\", function () {",
+									"    pm.ws.on('roomJoined', function(data) {",
+									"        pm.expect(data.room).to.equal('General');",
+									"        pm.expect(data.message).to.include('Welcome');",
+									"    });",
+									"});",
+									"",
+									"pm.test(\"User joined notification sent\", function () {",
+									"    pm.ws.on('userJoined', function(data) {",
+									"        pm.expect(data.username).to.equal('TestUser');",
+									"        pm.expect(data.room).to.equal('General');",
+									"    });",
+									"});",
+									"",
+									"pm.test(\"Room users list updated\", function () {",
+									"    pm.ws.on('roomUsers', function(data) {",
+									"        pm.expect(data.room).to.equal('General');",
+									"        pm.expect(data.users).to.be.an('array');",
+									"        pm.expect(data.users).to.include('TestUser');",
+									"    });",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "ws://localhost:3000",
+							"protocol": "ws",
+							"host": [
+								"localhost"
+							],
+							"port": "3000"
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Join Room - Invalid Room",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test joining an invalid room",
+									"pm.test(\"Error received for invalid room\", function () {",
+									"    pm.ws.on('error', function(data) {",
+									"        pm.expect(data).to.equal('Invalid room selected');",
+									"    });",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "ws://localhost:3000",
+							"protocol": "ws",
+							"host": [
+								"localhost"
+							],
+							"port": "3000"
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Leave Room",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test leaving a room",
+									"pm.test(\"Room left successfully\", function () {",
+									"    pm.ws.on('roomLeft', function(data) {",
+									"        pm.expect(data.message).to.include('left');",
+									"    });",
+									"});",
+									"",
+									"pm.test(\"User left notification sent\", function () {",
+									"    pm.ws.on('userLeft', function(data) {",
+									"        pm.expect(data.username).to.equal('TestUser');",
+									"        pm.expect(data.message).to.include('left');",
+									"    });",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "ws://localhost:3000",
+							"protocol": "ws",
+							"host": [
+								"localhost"
+							],
+							"port": "3000"
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Tests for room joining, leaving, and room management functionality"
+		},
+		{
+			"name": "Messaging",
+			"item": [
+				{
+					"name": "Send Message - Valid User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test sending a message as a valid user",
+									"pm.test(\"Message sent successfully\", function () {",
+									"    pm.ws.on('newMessage', function(data) {",
+									"        pm.expect(data.message).to.equal('Hello, world!');",
+									"        pm.expect(data.username).to.equal('TestUser');",
+									"        pm.expect(data.room).to.equal('General');",
+									"        pm.expect(data.timestamp).to.be.a('string');",
+									"        pm.expect(data.userId).to.be.a('string');",
+									"    });",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "ws://localhost:3000",
+							"protocol": "ws",
+							"host": [
+								"localhost"
+							],
+							"port": "3000"
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Send Message - No Room",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test sending a message without joining a room",
+									"pm.test(\"Error received for sending without room\", function () {",
+									"    pm.ws.on('error', function(data) {",
+									"        pm.expect(data).to.equal('Please join a room first');",
+									"    });",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "ws://localhost:3000",
+							"protocol": "ws",
+							"host": [
+								"localhost"
+							],
+							"port": "3000"
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Tests for message sending and receiving functionality"
+		},
+		{
+			"name": "User Management",
+			"item": [
+				{
+					"name": "User Disconnection",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"// Test user disconnection handling",
+									"pm.test(\"User left notification on disconnect\", function () {",
+									"    pm.ws.on('userLeft', function(data) {",
+									"        pm.expect(data.username).to.equal('TestUser');",
+									"        pm.expect(data.message).to.include('left');",
+									"    });",
+									"});",
+									"",
+									"pm.test(\"Room users list updated after disconnect\", function () {",
+									"    pm.ws.on('roomUsers', function(data) {",
+									"        pm.expect(data.users).to.not.include('TestUser');",
+									"    });",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "ws://localhost:3000",
+							"protocol": "ws",
+							"host": [
+								"localhost"
+							],
+							"port": "3000"
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Tests for user connection and disconnection handling"
+		},
+		{
+			"name": "HTTP Endpoints",
+			"item": [
+				{
+					"name": "Get Main Page",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								""
+							]
+						},
+						"description": "Test the main chat page endpoint"
+					},
+					"response": [],
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {",
+									"    pm.response.to.have.status(200);",
+									"});",
+									"",
+									"pm.test(\"Response is HTML\", function () {",
+									"    pm.response.to.have.header(\"Content-Type\");",
+									"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"text/html\");",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					]
+				},
+				{
+					"name": "Get Static Files",
+					"item": [
+						{
+							"name": "Get CSS File",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:3000/style.css",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "3000",
+									"path": [
+										"style.css"
+									]
+								},
+								"description": "Test CSS file serving"
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Response is CSS\", function () {",
+											"    pm.response.to.have.header(\"Content-Type\");",
+											"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"text/css\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							]
+						},
+						{
+							"name": "Get JavaScript File",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "http://localhost:3000/client.js",
+									"protocol": "http",
+									"host": [
+										"localhost"
+									],
+									"port": "3000",
+									"path": [
+										"client.js"
+									]
+								},
+								"description": "Test JavaScript file serving"
+							},
+							"response": [],
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {",
+											"    pm.response.to.have.status(200);",
+											"});",
+											"",
+											"pm.test(\"Response is JavaScript\", function () {",
+											"    pm.response.to.have.header(\"Content-Type\");",
+											"    pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/javascript\");",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							]
+						}
+					],
+					"description": "Tests for static file serving"
+				}
+			],
+			"description": "Tests for HTTP endpoints and static file serving"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:3000",
+			"type": "string"
+		},
+		{
+			"key": "wsUrl",
+			"value": "ws://localhost:3000",
+			"type": "string"
+		}
+	]
+}
