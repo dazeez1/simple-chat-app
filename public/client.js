@@ -561,7 +561,12 @@ function updateConnectionStatus(isConnected) {
     statusText.textContent = "Connected";
   } else {
     statusIndicator.className = "statusIndicator disconnected";
-    statusText.textContent = "Disconnected - Trying to reconnect...";
+    // Only show disconnection message if we were previously connected
+    if (currentUser.socketId) {
+      statusText.textContent = "Disconnected - Trying to reconnect...";
+    } else {
+      statusText.textContent = "Connecting...";
+    }
   }
 }
 
