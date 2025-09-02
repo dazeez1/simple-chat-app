@@ -212,12 +212,6 @@ function autoJoinRoom() {
 socket.on("connect_error", (error) => {
   console.log("Connection error:", error);
   
-  // If WebSocket fails, try polling transport
-  if (error.message && error.message.includes("websocket")) {
-    console.log("WebSocket failed, trying polling transport...");
-    socket.io.opts.transports = ["polling"];
-  }
-  
   // Don't show error message immediately, let reconnection handle it
   if (!connectionEstablished) {
     statusText.textContent = "Connecting...";

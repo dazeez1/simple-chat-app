@@ -12,21 +12,17 @@ const io = socketIo(server, {
   cors: {
     origin:
       process.env.NODE_ENV === "production"
-        ? ["https://simple-chat-app-*.vercel.app", "https://*.vercel.app", "https://simple-chat-app-azure.vercel.app"]
+        ? ["https://*.onrender.com", "https://simple-chat-app.onrender.com"]
         : "http://localhost:3000",
     methods: ["GET", "POST"],
     credentials: true,
   },
-  pingTimeout: 30000,
-  pingInterval: 15000,
-  transports: ["polling", "websocket"],
+  pingTimeout: 60000,
+  pingInterval: 25000,
+  transports: ["websocket", "polling"],
   allowEIO3: true,
   upgradeTimeout: 10000,
-  maxHttpBufferSize: 1e6,
-  allowRequest: (req, callback) => {
-    // Allow all requests for now
-    callback(null, true);
-  }
+  maxHttpBufferSize: 1e6
 });
 
 // Security headers
