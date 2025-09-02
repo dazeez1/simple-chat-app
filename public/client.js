@@ -209,8 +209,24 @@ function autoJoinRoom() {
 }
 
 // Connection status handling - very lenient
+socket.on("connect_error", (error) => {
+  console.log("Connection error:", error);
+  
+  // If WebSocket fails, try polling transport
+  if (error.message && error.message.includes("websocket")) {
+    console.log("WebSocket failed, trying polling transport...");
+    socket.io.opts.transports = ["polling"];
+  }
+  
+  // Don't show error message immediately, let reconnection handle it
+  if (!connectionEstablished) {
+    statusText.textContent = "Connecting...";
+  }
+});
+
 socket.on("connect", () => {
   console.log("Connected to server with ID:", socket.id);
+  console.log("Transport:", socket.io.engine.transport.name);
   currentUser.socketId = socket.id;
   lastPongTime = Date.now(); // Reset pong timer
   updateConnectionStatus(true);
@@ -261,14 +277,6 @@ socket.on("reconnect_attempt", (attemptNumber) => {
 socket.on("reconnect_failed", () => {
   console.log("Reconnection failed");
   statusText.textContent = "Connection issue - Please refresh if needed";
-});
-
-socket.on("connect_error", (error) => {
-  console.log("Connection error:", error);
-  // Don't show error message immediately, let reconnection handle it
-  if (!connectionEstablished) {
-    statusText.textContent = "Connecting...";
-  }
 });
 
 // Handle heartbeat response
