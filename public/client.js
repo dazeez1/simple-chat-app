@@ -211,7 +211,7 @@ function autoJoinRoom() {
 // Connection status handling - very lenient
 socket.on("connect_error", (error) => {
   console.log("Connection error:", error);
-  
+
   // Don't show error message immediately, let reconnection handle it
   if (!connectionEstablished) {
     statusText.textContent = "Connecting...";
