@@ -1,11 +1,14 @@
-// Initialize Socket.io connection with reconnection options
+// Initialize Socket.io connection with very lenient reconnection options
 const socket = io({
   reconnection: true,
-  reconnectionAttempts: 5,
-  reconnectionDelay: 1000,
-  reconnectionDelayMax: 5000,
-  timeout: 20000,
+  reconnectionAttempts: 20,
+  reconnectionDelay: 200,
+  reconnectionDelayMax: 1000,
+  timeout: 5000,
   autoConnect: true,
+  transports: ["websocket", "polling"],
+  forceNew: false,
+  multiplex: false,
 });
 
 // DOM elements
@@ -46,10 +49,11 @@ let currentUser = {
 // Chat messages storage
 let chatMessages = [];
 
-// Connection monitoring
+// Connection monitoring - VERY LENIENT for stability
 let heartbeatInterval;
 let connectionMonitorInterval;
 let lastPongTime = Date.now();
+let connectionEstablished = false;
 
 // Initialize app with saved state
 function initializeApp() {
@@ -61,31 +65,39 @@ function initializeApp() {
     autoJoinRoom();
   }
 
-  // Start connection monitoring
-  startConnectionMonitoring();
+  // Start minimal connection monitoring after 15 seconds
+  setTimeout(() => {
+    startMinimalConnectionMonitoring();
+  }, 15000);
 }
 
-// Start connection monitoring and heartbeat
-function startConnectionMonitoring() {
-  // Send heartbeat every 30 seconds
+// Start minimal connection monitoring - very lenient
+function startMinimalConnectionMonitoring() {
+  // Only send heartbeat every 3 minutes (very infrequent)
   heartbeatInterval = setInterval(() => {
     if (socket.connected) {
       socket.emit("ping");
     }
-  }, 30000);
+  }, 180000); // 3 minutes
 
-  // Monitor connection health every 10 seconds
+  // Only check connection health every 10 minutes (very infrequent)
   connectionMonitorInterval = setInterval(() => {
     const now = Date.now();
     const timeSinceLastPong = now - lastPongTime;
 
-    // If no pong received for more than 2 minutes, reconnect
-    if (timeSinceLastPong > 120000 && socket.connected) {
-      console.log("No heartbeat response, reconnecting...");
-      socket.disconnect();
-      socket.connect();
+    // Only reconnect if no pong received for more than 15 minutes (very lenient)
+    if (
+      timeSinceLastPong > 900000 &&
+      socket.connected &&
+      connectionEstablished
+    ) {
+      console.log("Very long time without heartbeat, gentle reconnection...");
+      // Don't disconnect, just try to reconnect gently
+      if (!socket.connected) {
+        socket.connect();
+      }
     }
-  }, 10000);
+  }, 600000); // 10 minutes
 }
 
 // Stop connection monitoring
@@ -196,12 +208,13 @@ function autoJoinRoom() {
   }
 }
 
-// Connection status handling
+// Connection status handling - very lenient
 socket.on("connect", () => {
   console.log("Connected to server with ID:", socket.id);
   currentUser.socketId = socket.id;
   lastPongTime = Date.now(); // Reset pong timer
   updateConnectionStatus(true);
+  connectionEstablished = true; // Set flag when connection is established
 
   // If we have saved state, try to rejoin room
   if (currentUser.username && currentUser.room) {
@@ -209,15 +222,22 @@ socket.on("connect", () => {
   }
 });
 
-socket.on("disconnect", () => {
-  console.log("Disconnected from server");
-  updateConnectionStatus(false);
+socket.on("disconnect", (reason) => {
+  console.log("Disconnected from server, reason:", reason);
+  connectionEstablished = false; // Reset flag on disconnect
+
+  // Only show disconnection message for actual network issues, not normal disconnects
+  if (reason === "io server disconnect" || reason === "transport close") {
+    updateConnectionStatus(false);
+  }
+  // For other reasons (like page unload), don't show disconnection message
 });
 
 socket.on("reconnect", (attemptNumber) => {
   console.log("Reconnected after", attemptNumber, "attempts");
   lastPongTime = Date.now(); // Reset pong timer
   updateConnectionStatus(true);
+  connectionEstablished = true; // Set flag on successful reconnect
 
   // Auto-rejoin room after reconnection
   if (currentUser.username && currentUser.room) {
@@ -229,12 +249,26 @@ socket.on("reconnect", (attemptNumber) => {
 
 socket.on("reconnect_attempt", (attemptNumber) => {
   console.log("Reconnection attempt", attemptNumber);
-  statusText.textContent = `Reconnecting... (Attempt ${attemptNumber})`;
+  // Only show reconnection message for first few attempts
+  if (attemptNumber <= 3) {
+    statusText.textContent = `Connecting... (${attemptNumber})`;
+  } else if (attemptNumber <= 5) {
+    statusText.textContent = `Reconnecting... (${attemptNumber})`;
+  }
+  // After 5 attempts, don't keep showing the message
 });
 
 socket.on("reconnect_failed", () => {
   console.log("Reconnection failed");
-  statusText.textContent = "Connection failed - Please refresh the page";
+  statusText.textContent = "Connection issue - Please refresh if needed";
+});
+
+socket.on("connect_error", (error) => {
+  console.log("Connection error:", error);
+  // Don't show error message immediately, let reconnection handle it
+  if (!connectionEstablished) {
+    statusText.textContent = "Connecting...";
+  }
 });
 
 // Handle heartbeat response

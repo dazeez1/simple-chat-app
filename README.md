@@ -90,24 +90,24 @@ localStorage.setItem("chat_messages", JSON.stringify(chatMessages));
 
 1. **Clone the repository**
 
-   ```bash
+```bash
    git clone <repository-url>
-   cd simple-chat-app
-   ```
+cd simple-chat-app
+```
 
 2. **Install dependencies**
 
-   ```bash
-   npm install
-   ```
+```bash
+npm install
+```
 
 3. **Start the server**
 
-   ```bash
-   npm start
-   # or
-   node server.js
-   ```
+```bash
+npm start
+# or
+node server.js
+```
 
 4. **Open the application**
    - Main app: http://localhost:3000
