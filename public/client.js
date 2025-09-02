@@ -1,5 +1,12 @@
-// Initialize Socket.io connection
-const socket = io();
+// Initialize Socket.io connection with reconnection options
+const socket = io({
+  reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
+  timeout: 20000,
+  autoConnect: true,
+});
 
 // DOM elements
 const joinForm = document.getElementById("joinForm");
@@ -13,12 +20,21 @@ const messagesArea = document.getElementById("messagesArea");
 const statusIndicator = document.getElementById("statusIndicator");
 const statusText = document.getElementById("statusText");
 const leaveRoomButton = document.getElementById("leaveRoomButton");
+const clearChatButton = document.getElementById("clearChatButton");
 const chatTitle = document.getElementById("chatTitle");
 const roomInfo = document.getElementById("roomInfo");
 const currentRoomName = document.getElementById("currentRoomName");
 const roomStatus = document.getElementById("roomStatus");
 const userListSection = document.getElementById("userListSection");
 const userList = document.getElementById("userList");
+
+// Local storage keys
+const STORAGE_KEYS = {
+  USERNAME: "chat_username",
+  ROOM: "chat_room",
+  MESSAGES: "chat_messages",
+  USER_STATE: "chat_user_state",
+};
 
 // Current user state
 let currentUser = {
@@ -27,16 +43,204 @@ let currentUser = {
   socketId: null,
 };
 
+// Chat messages storage
+let chatMessages = [];
+
+// Connection monitoring
+let heartbeatInterval;
+let connectionMonitorInterval;
+let lastPongTime = Date.now();
+
+// Initialize app with saved state
+function initializeApp() {
+  loadSavedState();
+  loadSavedMessages();
+
+  // If user was previously in a room, auto-join
+  if (currentUser.username && currentUser.room) {
+    autoJoinRoom();
+  }
+
+  // Start connection monitoring
+  startConnectionMonitoring();
+}
+
+// Start connection monitoring and heartbeat
+function startConnectionMonitoring() {
+  // Send heartbeat every 30 seconds
+  heartbeatInterval = setInterval(() => {
+    if (socket.connected) {
+      socket.emit("ping");
+    }
+  }, 30000);
+
+  // Monitor connection health every 10 seconds
+  connectionMonitorInterval = setInterval(() => {
+    const now = Date.now();
+    const timeSinceLastPong = now - lastPongTime;
+
+    // If no pong received for more than 2 minutes, reconnect
+    if (timeSinceLastPong > 120000 && socket.connected) {
+      console.log("No heartbeat response, reconnecting...");
+      socket.disconnect();
+      socket.connect();
+    }
+  }, 10000);
+}
+
+// Stop connection monitoring
+function stopConnectionMonitoring() {
+  if (heartbeatInterval) {
+    clearInterval(heartbeatInterval);
+  }
+  if (connectionMonitorInterval) {
+    clearInterval(connectionMonitorInterval);
+  }
+}
+
+// Load saved user state from localStorage
+function loadSavedState() {
+  try {
+    const savedState = localStorage.getItem(STORAGE_KEYS.USER_STATE);
+    if (savedState) {
+      const state = JSON.parse(savedState);
+      currentUser.username = state.username;
+      currentUser.room = state.room;
+
+      // Pre-fill form fields
+      if (currentUser.username) {
+        usernameInput.value = currentUser.username;
+      }
+      if (currentUser.room) {
+        roomSelect.value = currentUser.room;
+      }
+    }
+  } catch (error) {
+    console.error("Error loading saved state:", error);
+  }
+}
+
+// Save user state to localStorage
+function saveUserState() {
+  try {
+    const state = {
+      username: currentUser.username,
+      room: currentUser.room,
+      timestamp: Date.now(),
+    };
+    localStorage.setItem(STORAGE_KEYS.USER_STATE, JSON.stringify(state));
+  } catch (error) {
+    console.error("Error saving user state:", error);
+  }
+}
+
+// Load saved messages from localStorage
+function loadSavedMessages() {
+  try {
+    const savedMessages = localStorage.getItem(STORAGE_KEYS.MESSAGES);
+    if (savedMessages) {
+      chatMessages = JSON.parse(savedMessages);
+      // Display saved messages
+      chatMessages.forEach((msg) => {
+        addMessageToChat(
+          msg.message,
+          msg.type,
+          msg.timestamp,
+          msg.username,
+          false // Don't save again since we're loading
+        );
+      });
+    }
+  } catch (error) {
+    console.error("Error loading saved messages:", error);
+    chatMessages = [];
+  }
+}
+
+// Save messages to localStorage
+function saveMessages() {
+  try {
+    localStorage.setItem(STORAGE_KEYS.MESSAGES, JSON.stringify(chatMessages));
+  } catch (error) {
+    console.error("Error saving messages:", error);
+  }
+}
+
+// Clear all chat data
+function clearChatData() {
+  try {
+    localStorage.removeItem(STORAGE_KEYS.MESSAGES);
+    localStorage.removeItem(STORAGE_KEYS.USER_STATE);
+    chatMessages = [];
+    messagesArea.innerHTML = "";
+    addMessageToChat("Chat history cleared.", "system");
+  } catch (error) {
+    console.error("Error clearing chat data:", error);
+  }
+}
+
+// Auto-join room if user was previously connected
+function autoJoinRoom() {
+  if (currentUser.username && currentUser.room) {
+    console.log("Auto-joining room:", currentUser.room);
+
+    // Update UI to show loading state
+    joinButton.disabled = true;
+    joinButton.textContent = "Reconnecting...";
+
+    // Send join room request
+    socket.emit("joinRoom", {
+      username: currentUser.username,
+      roomName: currentUser.room,
+    });
+  }
+}
+
 // Connection status handling
 socket.on("connect", () => {
   console.log("Connected to server with ID:", socket.id);
   currentUser.socketId = socket.id;
+  lastPongTime = Date.now(); // Reset pong timer
   updateConnectionStatus(true);
+
+  // If we have saved state, try to rejoin room
+  if (currentUser.username && currentUser.room) {
+    autoJoinRoom();
+  }
 });
 
 socket.on("disconnect", () => {
   console.log("Disconnected from server");
   updateConnectionStatus(false);
+});
+
+socket.on("reconnect", (attemptNumber) => {
+  console.log("Reconnected after", attemptNumber, "attempts");
+  lastPongTime = Date.now(); // Reset pong timer
+  updateConnectionStatus(true);
+
+  // Auto-rejoin room after reconnection
+  if (currentUser.username && currentUser.room) {
+    setTimeout(() => {
+      autoJoinRoom();
+    }, 500);
+  }
+});
+
+socket.on("reconnect_attempt", (attemptNumber) => {
+  console.log("Reconnection attempt", attemptNumber);
+  statusText.textContent = `Reconnecting... (Attempt ${attemptNumber})`;
+});
+
+socket.on("reconnect_failed", () => {
+  console.log("Reconnection failed");
+  statusText.textContent = "Connection failed - Please refresh the page";
+});
+
+// Handle heartbeat response
+socket.on("pong", () => {
+  lastPongTime = Date.now();
+  console.log("Heartbeat response received");
 });
 
 // Handle available rooms
@@ -50,6 +254,9 @@ socket.on("roomJoined", (data) => {
   console.log("Joined room:", data);
   currentUser.room = data.room;
 
+  // Save user state
+  saveUserState();
+
   // Update UI for joined room
   showRoomInterface();
   addMessageToChat(data.message, "system");
@@ -57,6 +264,10 @@ socket.on("roomJoined", (data) => {
   // Update chat title
   chatTitle.textContent = `${data.room} Room`;
   currentRoomName.textContent = data.room;
+
+  // Reset join button
+  joinButton.disabled = false;
+  joinButton.textContent = "Join Room";
 });
 
 // Handle room leaving
@@ -64,12 +275,17 @@ socket.on("roomLeft", (data) => {
   console.log("Left room:", data);
   currentUser.room = null;
 
+  // Clear saved state
+  localStorage.removeItem(STORAGE_KEYS.USER_STATE);
+  localStorage.removeItem(STORAGE_KEYS.MESSAGES);
+
   // Reset UI
   showJoinInterface();
   addMessageToChat(data.message, "system");
 
   // Clear messages
   messagesArea.innerHTML = "";
+  chatMessages = [];
 
   // Update chat title
   chatTitle.textContent = "Welcome to Chat App";
@@ -113,6 +329,10 @@ socket.on("roomUsers", (data) => {
 socket.on("error", (errorMessage) => {
   console.error("Server error:", errorMessage);
   addMessageToChat(`Error: ${errorMessage}`, "system");
+
+  // Reset join button on error
+  joinButton.disabled = false;
+  joinButton.textContent = "Join Room";
 });
 
 // Handle join form submission
@@ -135,6 +355,9 @@ joinForm.addEventListener("submit", (event) => {
 
     // Store username
     currentUser.username = username;
+
+    // Save user state
+    saveUserState();
   }
 });
 
@@ -173,6 +396,17 @@ leaveRoomButton.addEventListener("click", () => {
   }
 });
 
+// Handle clear chat button
+clearChatButton.addEventListener("click", () => {
+  if (
+    confirm(
+      "Are you sure you want to clear the chat history? This will remove all saved messages."
+    )
+  ) {
+    clearChatData();
+  }
+});
+
 // Function to show room interface (after joining)
 function showRoomInterface() {
   // Hide join section
@@ -186,8 +420,9 @@ function showRoomInterface() {
   messageInput.disabled = false;
   sendButton.disabled = false;
 
-  // Show leave room button
+  // Show buttons
   leaveRoomButton.style.display = "block";
+  clearChatButton.style.display = "block";
 
   // Focus on message input
   messageInput.focus();
@@ -206,8 +441,9 @@ function showJoinInterface() {
   messageInput.disabled = true;
   sendButton.disabled = true;
 
-  // Hide leave room button
+  // Hide buttons
   leaveRoomButton.style.display = "none";
+  clearChatButton.style.display = "none";
 
   // Reset join button
   joinButton.disabled = false;
@@ -222,7 +458,8 @@ function addMessageToChat(
   messageText,
   messageType,
   timestamp = null,
-  username = null
+  username = null,
+  saveToStorage = true
 ) {
   const messageElement = document.createElement("div");
   messageElement.className = `messageItem ${messageType}`;
@@ -273,6 +510,26 @@ function addMessageToChat(
     messageElement.style.opacity = "1";
     messageElement.style.transform = "translateY(0)";
   }, 10);
+
+  // Save message to localStorage if needed
+  if (saveToStorage && messageType !== "system") {
+    const messageData = {
+      message: messageText,
+      type: messageType,
+      timestamp: timestamp || new Date().toLocaleTimeString(),
+      username: username,
+      room: currentUser.room,
+    };
+
+    chatMessages.push(messageData);
+
+    // Keep only last 100 messages to prevent localStorage overflow
+    if (chatMessages.length > 100) {
+      chatMessages = chatMessages.slice(-100);
+    }
+
+    saveMessages();
+  }
 }
 
 // Function to update user list
@@ -307,6 +564,25 @@ function updateConnectionStatus(isConnected) {
     statusText.textContent = "Disconnected - Trying to reconnect...";
   }
 }
+
+// Handle page visibility changes to maintain connection
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    // Page became visible, check connection
+    if (!socket.connected) {
+      console.log("Page became visible, reconnecting...");
+      socket.connect();
+    }
+  }
+});
+
+// Handle beforeunload to clean up
+window.addEventListener("beforeunload", () => {
+  stopConnectionMonitoring();
+});
+
+// Initialize the app when DOM is loaded
+document.addEventListener("DOMContentLoaded", initializeApp);
 
 // Add some helpful console messages
 console.log("Room-based chat client initialized");

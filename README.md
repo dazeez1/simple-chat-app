@@ -1,320 +1,220 @@
 # Simple Chat App
 
-A real-time chat application built with WebSockets and Socket.IO, enabling instant messaging with modern features and a clean, responsive interface. Users can join different themed rooms and communicate in real-time with other users.
+A real-time, room-based chat application built with Node.js, Express, and Socket.io. Features persistent chat history, automatic reconnection, and a modern UI.
 
-## 🚀 Features
+## ✨ Features
 
-- **Real-time Messaging**: Instant message delivery using WebSockets
-- **Room-based Chat**: Join different themed rooms (General, Sports, Tech, Music, Gaming)
-- **User Management**: Username-based authentication with room tracking
-- **Live User Lists**: See active users in each room in real-time
-- **Join/Leave Notifications**: Get notified when users enter or exit rooms
-- **Responsive Design**: Works seamlessly on desktop and mobile devices
-- **Modern UI**: Clean, intuitive interface with smooth animations
+### Core Features
 
-## 🛠️ Tech Stack
+- **Room-based Chat**: Join different chat rooms (General, Sports, Tech, Music, Gaming)
+- **Real-time Messaging**: Instant message delivery using Socket.io
+- **User Management**: See active users in each room
+- **Modern UI**: Clean, responsive design with smooth animations
 
-- **Backend**: Node.js with Express.js
-- **Real-time Communication**: Socket.IO
-- **Frontend**: HTML5, CSS3, Vanilla JavaScript
-- **Styling**: Modern CSS with gradients and responsive design
-- **Development**: npm for package management
+### 🚀 New Improvements (Latest Update)
 
-## 📋 Prerequisites
+#### 1. **Connection Stability**
 
-- Node.js (v16 or higher)
-- npm (v8 or higher)
+- **Automatic Reconnection**: Client automatically reconnects if connection is lost
+- **Heartbeat Mechanism**: Regular ping/pong to detect connection issues
+- **Connection Monitoring**: Proactive connection health checks
+- **Graceful Error Handling**: Better error messages and recovery
 
-## 🚀 Quick Setup
+#### 2. **Local Storage & Persistence**
 
-### 1. Clone the Repository
+- **Chat History Persistence**: Messages are saved locally and restored on page reload
+- **User State Persistence**: Username and room selection are remembered
+- **Auto-rejoin**: Automatically rejoin the last room when reconnecting
+- **Clear Chat Function**: Option to clear chat history when needed
 
-```bash
-git clone https://github.com/dazeez1/simple-chat-app.git
-cd simple-chat-app
+#### 3. **Enhanced User Experience**
+
+- **Connection Status Indicator**: Visual indicator showing connection status
+- **Loading States**: Better feedback during connection and room joining
+- **Page Visibility Handling**: Maintains connection when switching tabs
+- **Input Validation**: Username and message length validation
+
+#### 4. **Server Improvements**
+
+- **Stale User Cleanup**: Automatically removes inactive users
+- **Session Management**: Prevents duplicate usernames in rooms
+- **Graceful Shutdown**: Proper server shutdown handling
+- **Enhanced Logging**: Better debugging and monitoring
+
+## 🛠️ Technical Details
+
+### Connection Stability Features
+
+```javascript
+// Socket.io configuration with reconnection
+const socket = io({
+  reconnection: true,
+  reconnectionAttempts: 5,
+  reconnectionDelay: 1000,
+  reconnectionDelayMax: 5000,
+  timeout: 20000,
+  autoConnect: true,
+});
+
+// Heartbeat mechanism
+setInterval(() => {
+  if (socket.connected) {
+    socket.emit("ping");
+  }
+}, 30000);
 ```
 
-### 2. Install Dependencies
+### Local Storage Implementation
 
-```bash
-npm install
+```javascript
+// Save user state
+const state = {
+  username: currentUser.username,
+  room: currentUser.room,
+  timestamp: Date.now(),
+};
+localStorage.setItem("chat_user_state", JSON.stringify(state));
+
+// Save messages
+localStorage.setItem("chat_messages", JSON.stringify(chatMessages));
 ```
 
-### 3. Start the Server
+## 🚀 Getting Started
 
-```bash
-npm start
-# or
-node server.js
-```
+### Prerequisites
 
-### 4. Access the Application
+- Node.js (v14 or higher)
+- npm or yarn
 
-Open your browser and navigate to: `http://localhost:3000`
+### Installation
 
-## 📖 Usage
-
-### Basic Chat Flow
-
-1. **Enter Username**: Choose a unique username for identification
-2. **Select Room**: Pick from available rooms:
-   - **General** - General discussions and casual chat
-   - **Sports** - Sports news, games, and athletics
-   - **Tech** - Technology, programming, and software
-   - **Music** - Music, artists, and entertainment
-   - **Gaming** - Video games, gaming news, and discussions
-3. **Join Room**: Click "Join Room" to enter the selected room
-4. **Start Chatting**: Send messages that only appear in your current room
-5. **View Users**: See all active users in the left sidebar
-6. **Leave Room**: Click "Leave Room" to exit and return to room selection
-
-### Testing with Multiple Users
-
-1. Open multiple browser tabs/windows with `http://localhost:3000`
-2. Join different rooms with different usernames
-3. Send messages to test room isolation
-4. Watch user lists update in real-time
-5. Test join/leave notifications
-
-## 🚀 Deployment
-
-### Vercel Deployment (Recommended)
-
-This app is optimized for deployment on Vercel with real-time WebSocket support.
-
-#### Option 1: Vercel CLI
-
-1. **Install Vercel CLI:**
-   ```bash
-   npm i -g vercel
-   ```
-
-2. **Deploy to Vercel:**
-   ```bash
-   vercel
-   ```
-
-3. **Follow the prompts** to connect your GitHub repository
-
-#### Option 2: GitHub Integration
-
-1. **Push to GitHub** (if not already done):
-   ```bash
-   git add .
-   git commit -m "Ready for deployment"
-   git push origin main
-   ```
-
-2. **Go to [vercel.com](https://vercel.com)**
-3. **Import your GitHub repository**
-4. **Vercel will automatically detect and deploy your app**
-
-#### Environment Variables
-
-The app automatically handles:
-- `NODE_ENV=production` (set by Vercel)
-- `PORT` (set by Vercel)
-- CORS configuration for production domains
-
-#### Deployment Features
-
-- ✅ **Real-time WebSocket support** on Vercel
-- ✅ **Automatic HTTPS** and CDN
-- ✅ **Global edge deployment**
-- ✅ **Auto-scaling** based on traffic
-- ✅ **Zero-downtime deployments**
-
-### Other Deployment Options
-
-#### Heroku
-```bash
-heroku create your-chat-app
-git push heroku main
-```
-
-#### Railway
-```bash
-railway login
-railway init
-railway up
-```
-
-## 🧪 Testing with Postman
-
-### Import Postman Collection
-
-1. Download the `Simple-Chat-App.postman_collection.json` file
-2. Open Postman and click "Import"
-3. Select the downloaded collection file
-4. The collection will be imported with all test cases
-
-### Available Test Categories
-
-#### WebSocket Connection Tests
-
-- **Connect to WebSocket Server**: Tests basic WebSocket connection
-- **Get Available Rooms**: Verifies server sends available rooms on connection
-
-#### Room Management Tests
-
-- **Join Room - Valid Room**: Tests joining a valid room with proper notifications
-- **Join Room - Invalid Room**: Tests error handling for invalid room selection
-- **Leave Room**: Tests room leaving functionality
-
-#### Messaging Tests
-
-- **Send Message - Valid User**: Tests message sending as a valid room member
-- **Send Message - No Room**: Tests error handling when sending without joining a room
-
-#### User Management Tests
-
-- **User Disconnection**: Tests user disconnection handling and notifications
-
-#### HTTP Endpoint Tests
-
-- **Get Main Page**: Tests the main chat page endpoint (200 OK)
-- **Get Static Files**: Tests CSS and JavaScript file serving
-
-### Running Tests
-
-1. **Start the server**: `npm start`
-2. **Open Postman** and load the collection
-3. **Run individual tests** or the entire collection
-4. **Check test results** in the Postman test runner
-
-### Expected Status Codes
-
-- **200**: Successful HTTP requests (main page, static files)
-- **WebSocket Events**: Real-time events for room management and messaging
-
-## 📁 Project Structure
-
-```
-simple-chat-app/
-├── server.js                          # Express + Socket.io server
-├── public/
-│   ├── index.html                     # Main chat interface
-│   ├── client.js                      # Frontend Socket.io logic
-│   └── style.css                      # Styling and responsive design
-├── package.json                       # Dependencies and scripts
-├── Simple-Chat-App.postman_collection.json  # Postman test collection
-├── README.md                          # Project documentation
-├── config/                            # Configuration files
-├── controllers/                       # Business logic handlers
-├── middleware/                        # Custom middleware
-├── models/                            # Database models
-├── routes/                            # API route definitions
-└── tests/                             # Test files
-```
-
-## 🔧 API Documentation
-
-### WebSocket Events
-
-#### Client to Server Events
-
-| Event         | Data                   | Description                    |
-| ------------- | ---------------------- | ------------------------------ |
-| `joinRoom`    | `{username, roomName}` | Join a specific chat room      |
-| `sendMessage` | `{message}`            | Send a message to current room |
-| `leaveRoom`   | -                      | Leave current room             |
-
-#### Server to Client Events
-
-| Event            | Data                                           | Description                |
-| ---------------- | ---------------------------------------------- | -------------------------- |
-| `availableRooms` | `Array<string>`                                | List of available rooms    |
-| `roomJoined`     | `{room, message}`                              | Confirmation of room join  |
-| `userJoined`     | `{username, room, message}`                    | User joined notification   |
-| `userLeft`       | `{username, room, message}`                    | User left notification     |
-| `newMessage`     | `{message, username, room, timestamp, userId}` | New message received       |
-| `roomUsers`      | `{room, users}`                                | Updated user list for room |
-| `roomLeft`       | `{message}`                                    | Confirmation of room leave |
-| `error`          | `string`                                       | Error message              |
-
-### HTTP Endpoints
-
-| Method | Endpoint     | Description       | Status Code |
-| ------ | ------------ | ----------------- | ----------- |
-| GET    | `/`          | Main chat page    | 200         |
-| GET    | `/style.css` | CSS styles        | 200         |
-| GET    | `/client.js` | JavaScript client | 200         |
-
-## 🎯 Available Rooms
-
-- **General**: General discussions and casual chat
-- **Sports**: Sports news, games, and athletics
-- **Tech**: Technology, programming, and software
-- **Music**: Music, artists, and entertainment
-- **Gaming**: Video games, gaming news, and discussions
-
-## 🚀 Deployment
-
-### Local Development
-
-```bash
-npm start
-```
-
-### Production Deployment
-
-1. Set environment variables:
+1. **Clone the repository**
 
    ```bash
-   export PORT=3000
+   git clone <repository-url>
+   cd simple-chat-app
    ```
 
-2. Start the server:
+2. **Install dependencies**
+
+   ```bash
+   npm install
+   ```
+
+3. **Start the server**
 
    ```bash
    npm start
+   # or
+   node server.js
    ```
 
-3. The application will be available at `http://localhost:3000`
+4. **Open the application**
+   - Main app: http://localhost:3000
+   - Test page: http://localhost:3000/test-improvements.html
+
+## 📱 Usage
+
+### Basic Usage
+
+1. Enter your username (max 20 characters)
+2. Select a chat room
+3. Click "Join Room" to start chatting
+4. Type messages and press Enter to send
+
+### Advanced Features
+
+- **Auto-reconnection**: If you lose connection, the app will automatically reconnect
+- **Persistent Chat**: Your messages and room selection are saved locally
+- **Clear Chat**: Use the "Clear Chat" button to remove chat history
+- **Connection Status**: Monitor your connection status in the header
+
+### Testing the Improvements
+
+1. Open the test page: `test-improvements.html`
+2. Run the connection and local storage tests
+3. Test the main app with multiple browser tabs
+4. Try refreshing the page to see persistence in action
+
+## 🔧 Configuration
+
+### Environment Variables
+
+- `PORT`: Server port (default: 3000)
+- `NODE_ENV`: Environment mode (development/production)
+
+### Available Rooms
+
+- General
+- Sports
+- Tech
+- Music
+- Gaming
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+1. **Connection Issues**
+
+   - Check if the server is running on port 3000
+   - Verify firewall settings
+   - Try refreshing the page
+
+2. **Local Storage Issues**
+
+   - Ensure cookies are enabled
+   - Check browser storage settings
+   - Try clearing browser data
+
+3. **Message Not Sending**
+   - Check connection status indicator
+   - Verify you're in a room
+   - Try reconnecting
+
+### Debug Mode
+
+Open browser console to see detailed connection logs and error messages.
+
+## 📊 Performance
+
+### Optimizations
+
+- **Message Limit**: Only last 100 messages are stored locally
+- **Connection Pooling**: Efficient Socket.io connection management
+- **Memory Management**: Automatic cleanup of stale connections
+- **Error Recovery**: Graceful handling of network issues
+
+## 🔒 Security
+
+### Features
+
+- **Input Validation**: Username and message length limits
+- **XSS Protection**: Content sanitization
+- **CORS Configuration**: Proper cross-origin settings
+- **Session Management**: Prevents duplicate usernames
 
 ## 🤝 Contributing
 
-We welcome contributions! Please follow these steps:
-
 1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
-### Development Guidelines
+## 📄 License
 
-- Test all changes with the provided Postman collection
-- Ensure responsive design works on all devices
-- Follow existing code style and conventions
-- Add appropriate error handling
-- Update documentation for new features
+This project is licensed under the MIT License.
 
-## 📝 License
+## 🆘 Support
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+If you encounter any issues:
 
-## 👨‍💻 Author
-
-**Azeez Damilare Gbenga**
-
-- GitHub: [@dazeez1](https://github.com/dazeez1)
-
-## 🙏 Acknowledgments
-
-- Socket.IO team for the excellent real-time communication library
-- Express.js community for the robust web framework
-- All contributors and testers who helped improve this project
-
-## 📞 Support
-
-If you encounter any issues or have questions:
-
-1. Check the [Issues](https://github.com/dazeez1/simple-chat-app/issues) page
-2. Create a new issue with detailed description
-3. Include steps to reproduce the problem
-4. Provide your environment details (OS, Node.js version, etc.)
+1. Check the troubleshooting section
+2. Review the browser console for errors
+3. Test with the provided test page
+4. Create an issue with detailed information
 
 ---
 
-**Ready to chat? Start the server and join a room! 🚀**
+**Note**: This chat app is designed for development and testing purposes. For production use, consider adding authentication, database persistence, and additional security measures.

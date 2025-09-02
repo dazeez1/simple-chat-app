@@ -229,6 +229,27 @@ body {
   background: #dc3545;
 }
 
+.headerButtons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.clearChatButton {
+  background: #6c757d;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 0.9em;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+.clearChatButton:hover {
+  background: #5a6268;
+}
+
 .leaveRoomButton {
   background: #dc3545;
   color: white;
